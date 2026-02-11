@@ -1,0 +1,65 @@
+name: Online Build & Test (No Local Install)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["work", "main", "master"]
+
+jobs:
+  web-build:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.2.2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Export Web build
+        run: |
+          mkdir -p build/web
+          godot --headless --path godot_app --export-release "Web" build/web/index.html
+
+      - name: Upload Web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy-pages:
+    needs: web-build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  android-apk-build:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.2.2
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Export Android debug APK
+        run: |
+          mkdir -p build/android
+          godot --headless --path godot_app --export-debug "Android" build/android/EpochOfEmbersPrototype.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/android/EpochOfEmbersPrototype.apk

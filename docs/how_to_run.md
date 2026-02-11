@@ -1,109 +1,80 @@
-# How to Run and Build APK (Complete Prototype)
+# Run & Test Completely Online (No Software Install on Your PC)
 
-This repository includes a **playable Godot prototype** and a **one-command build script** for Android APK export.
+Yes — you can run and test this project online without installing Godot, Android Studio, or SDK tools locally.
 
-## Included playable project
-- `godot_app/project.godot`
-- `godot_app/scenes/main.tscn`
-- `godot_app/scripts/game_state.gd`
-- `godot_app/scripts/main.gd`
-
-## One-command APK build script
-- `scripts/build_android.sh`
+This repo now supports a cloud workflow using **GitHub Actions**:
+- Web build (play in browser via GitHub Pages)
+- Android APK build artifact (download and install on your phone)
 
 ---
 
-## Quick start (desktop test)
-1. Install Godot 4.2+.
-2. Import `godot_app/project.godot` in Godot.
-3. Press **Play** and verify:
-   - resource ticks
-   - building upgrades
-   - dragon hunt / egg hatching
-   - PvE/PvP actions
+## What was added for online testing
+- `godot_app/export_presets.cfg` with `Web` and `Android` export presets.
+- `.github/workflows/online-build-and-test.yml` cloud pipeline.
+- `scripts/build_web.sh` helper for local/CI web export parity.
 
 ---
 
-## Install Godot CLI quickly (if missing)
-If `godot4` is not found, use the helper installer script (downloads official Linux binary):
+## Zero-install method (GitHub web UI only)
 
-```bash
-./scripts/install_godot4.sh
-```
+## Step 1: Push this repo to GitHub
+If your code is already on GitHub, skip this.
 
-Then ensure `~/.local/bin` is on PATH (or pass `--dest` when installing).
+## Step 2: Enable GitHub Pages
+1. Open your GitHub repo.
+2. Go to **Settings → Pages**.
+3. Under Build and deployment, set **Source = GitHub Actions**.
 
----
+## Step 3: Trigger cloud build
+1. Go to **Actions** tab.
+2. Open workflow: **Online Build & Test (No Local Install)**.
+3. Click **Run workflow**.
 
-## One-time Android setup (Godot editor)
-You only do this once on your machine:
-
-1. **Editor > Manage Export Templates** → install templates matching your Godot version.
-2. **Editor Settings > Export > Android**:
-   - set `adb`
-   - set `jarsigner`
-   - set debug keystore (or default)
-3. **Project > Export...**:
-   - Add preset: **Android**
-   - Keep preset name exactly: `Android`
-   - Save (this generates `godot_app/export_presets.cfg`)
+This runs three jobs:
+1. **web-build**: exports HTML5 build.
+2. **deploy-pages**: deploys web build to GitHub Pages.
+3. **android-apk-build**: attempts APK export and uploads APK artifact.
 
 ---
 
-## Build APK with one command
-From repo root:
-
-```bash
-./scripts/build_android.sh
-```
-
-Default output:
-- `build/EpochOfEmbersPrototype-debug.apk`
-
-### Release build
-```bash
-./scripts/build_android.sh --release
-```
-
-### Custom output path
-```bash
-./scripts/build_android.sh --output build/MyCustomName.apk
-```
+## Test in browser (fully online)
+After workflow succeeds:
+1. Open Actions run summary.
+2. In `deploy-pages` job, open the published URL.
+3. Play directly in browser (desktop/mobile browser supported).
 
 ---
 
-## Install APK on Android
-If `adb` is installed:
-
-```bash
-adb install -r build/EpochOfEmbersPrototype-debug.apk
-```
-
-Or copy the APK to your device and install manually.
+## Get APK without local build tools
+After workflow succeeds:
+1. Open same Actions run.
+2. Download artifact named **android-apk**.
+3. Copy APK to Android device.
+4. Install APK (allow unknown sources if prompted).
 
 ---
 
-## Gameplay controls in current build
-- **Upgrade Town Hall/Farm/Mine**: spend resources and start timed upgrade.
-- **Dragon Hunt**: chance to get egg; eggs hatch over time.
-- **Run PvE**: progression fight simulation.
-- **Run PvP Raid**: raid simulation with loot/loss.
-- **Story Choice: Order/Freedom**: changes morality axis.
-- **Save Progress**: writes local save to device storage.
+## If Android artifact fails
+`android-apk-build` is marked `continue-on-error` so web deployment still works.
+
+Most common fix:
+- Ensure repo contains a valid Android export preset in `godot_app/export_presets.cfg` (already included).
+- Re-run workflow after adjusting package/signing fields for your org if required.
 
 ---
 
-## Troubleshooting
-- **`ERROR: Missing export_presets.cfg`**:
-  - Open Godot → Project > Export... → add Android preset named `Android`.
-- **`Godot CLI not found`**:
-  - Install Godot and ensure `godot4` (or `godot`) is in PATH.
-- **APK installs but won’t open**:
-  - Rebuild with only `arm64-v8a` enabled in Android preset.
-- **Keystore/signing issues**:
-  - Start with debug build; configure release signing later.
+## Gameplay checks after launch
+Use these controls to validate the prototype:
+- Upgrade Town Hall/Farm/Mine
+- Dragon Hunt + egg hatching
+- PvE and PvP simulation
+- Story choice (Order/Freedom)
+- Save Progress
 
 ---
 
-## Legacy starter scripts
-`starter/unity` and `starter/godot` contain reference snippets. The runnable APK target is `godot_app/`.
+## Optional: command-line build if you ever want it
+Even though not required, local scripts still exist:
+- `./scripts/build_android.sh`
+- `./scripts/build_web.sh`
+- `./scripts/install_godot4.sh`
